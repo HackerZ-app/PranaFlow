@@ -1,7 +1,6 @@
 {
   "name": "pranaflow",
   "version": "1.0.0",
-  "homepage": "https://hackerz-app.github.io/PranaFlow",
   "description": "The breathing Meditation app according to the principles of Ayurveda.",
   "main": "index.js",
   "type": "module",
