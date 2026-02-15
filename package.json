@@ -9,6 +9,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist",
     "preview": "vite preview"
   },
   "repository": {
@@ -34,5 +36,8 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
     "vite": "^7.3.1"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
   }
 }
