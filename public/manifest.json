@@ -1,0 +1,16 @@
+{
+    "short_name": "PranaFlow",
+    "name": "PranaFlow: Ayurvedic Breathing",
+    "icons": [
+        {
+            "src": "/icon.svg",
+            "sizes": "192x192 512x512",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "start_url": "/",
+    "display": "standalone",
+    "theme_color": "#0A0A1A",
+    "background_color": "#0A0A1A"
+}
