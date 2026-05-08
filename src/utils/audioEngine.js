@@ -93,6 +93,44 @@ class AudioEngine {
         osc.stop(t + 2);
     }
 
+    playSingingBowl() {
+        this.init();
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+
+        const t = this.ctx.currentTime;
+        const duration = 5; // 5-second resonant decay
+
+        // Three harmonic layers for a rich, metallic singing bowl timbre
+        const harmonics = [
+            { freq: 200, gain: 0.25 },   // Deep fundamental
+            { freq: 550, gain: 0.12 },   // Mid harmonic (metallic shimmer)
+            { freq: 900, gain: 0.06 },   // High harmonic (airy brilliance)
+        ];
+
+        harmonics.forEach(({ freq, gain: peakGain }) => {
+            const osc = this.ctx.createOscillator();
+            const gainNode = this.ctx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, t);
+            // Subtle pitch drift downward for realism
+            osc.frequency.exponentialRampToValueAtTime(freq * 0.98, t + duration);
+
+            // Soft attack, long resonant decay
+            gainNode.gain.setValueAtTime(0, t);
+            gainNode.gain.linearRampToValueAtTime(peakGain, t + 0.5);     // Gentle 0.5s attack
+            gainNode.gain.exponentialRampToValueAtTime(0.001, t + duration); // Long decay
+
+            osc.connect(gainNode);
+            gainNode.connect(this.masterGain);
+
+            osc.start(t);
+            osc.stop(t + duration + 0.1);
+        });
+    }
+
     stop() {
         if (this.oscillators.length > 0) {
             const t = this.ctx.currentTime;

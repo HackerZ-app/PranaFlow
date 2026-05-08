@@ -2,12 +2,6 @@ import React from 'react';
 import { Play, Square, Volume2, VolumeX, Pause } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const BREATHING_LEVELS = [
-    { id: 1, name: 'Beginner', ratio: '1:1:2', color: 'from-cyan-400 to-blue-500' },
-    { id: 2, name: 'Intermediate', ratio: '1:2:2', color: 'from-amber-300 to-orange-500' },
-    { id: 3, name: 'Advanced', ratio: '1:4:2', color: 'from-fuchsia-500 to-violet-600' }
-];
-
 const Controls = ({
     isActive,
     isPaused,
@@ -15,8 +9,7 @@ const Controls = ({
     onStop,
     onToggleSound,
     soundEnabled,
-    currentLevelId,
-    onChangeLevel
+    currentLevelId
 }) => {
 
     const getSmokeColor = (levelId) => {
@@ -77,34 +70,6 @@ const Controls = ({
 
     return (
         <div className="flex flex-col items-center gap-8 w-full max-w-lg">
-
-            {/* Level Selector - Modern Glass Cards with Neon Glow */}
-            <div className="flex items-center justify-center gap-4 w-full px-2">
-                {BREATHING_LEVELS.map((level) => {
-                    const isSelected = currentLevelId === level.id;
-                    const levelGradient = getSmokeColor(level.id);
-
-                    return (
-                        <NeonButton
-                            key={level.id}
-                            onClick={() => onChangeLevel(level.id)}
-                            isActive={isSelected}
-                            disabled={isActive}
-                            colorGradient={levelGradient}
-                            className="flex-1 h-14"
-                        >
-                            <div className="flex flex-col items-center leading-none gap-1">
-                                <span className={`text-sm font-bold tracking-wide ${isSelected ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}`}>
-                                    {level.name}
-                                </span>
-                                <span className={`text-[10px] font-mono ${isSelected ? 'text-white/80' : 'text-gray-500 group-hover:text-gray-400'}`}>
-                                    {level.ratio}
-                                </span>
-                            </div>
-                        </NeonButton>
-                    );
-                })}
-            </div>
 
             {/* Main Controls Row */}
             <div className="flex items-center gap-8">

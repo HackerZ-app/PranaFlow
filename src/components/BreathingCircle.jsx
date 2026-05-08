@@ -57,7 +57,9 @@ const BreathingCircle = ({ phase, timeLeft, level }) => {
                 className="relative z-10 flex items-center justify-center rounded-full glass-circle"
                 animate={{
                     scale: getScale(),
-                    boxShadow: `0 0 40px ${currentTheme.glow}, inset 0 0 20px rgba(255,255,255,0.1)`
+                    boxShadow: phase === 'idle' 
+                        ? `0 0 20px ${currentTheme.glow}, inset 0 0 10px rgba(255,255,255,0.05)`
+                        : `0 0 60px 10px ${currentTheme.glow}, 0 0 120px ${currentTheme.glow}, inset 0 0 30px rgba(255,255,255,0.05)`
                 }}
                 transition={{ duration: duration, ease: "easeInOut" }}
                 style={{
@@ -81,7 +83,7 @@ const BreathingCircle = ({ phase, timeLeft, level }) => {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 1.1 }}
                             transition={{ duration: 0.3 }}
-                            className={`text-lg font-medium tracking-[0.2em] uppercase mb-1 ${currentTheme.text}`}
+                            className={`text-lg font-medium tracking-[0.3em] uppercase mb-1 drop-shadow-md ${currentTheme.text}`}
                         >
                             {phase === 'idle' ? 'PRANA' : phase}
                         </motion.span>
@@ -91,7 +93,7 @@ const BreathingCircle = ({ phase, timeLeft, level }) => {
                         key={timeLeft}
                         initial={{ opacity: 0.5, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-7xl font-light text-white tabular-nums tracking-tighter drop-shadow-lg"
+                        className="text-7xl font-light text-white tabular-nums tracking-tighter drop-shadow-2xl"
                     >
                         {phase === 'idle' ? level.totalDuration : timeLeft}
                     </motion.span>

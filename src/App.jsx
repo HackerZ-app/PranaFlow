@@ -1,14 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useBreathingCycle } from './hooks/useBreathingCycle';
 import { useStreaks } from './hooks/useStreaks';
-import BreathingCircle from './components/BreathingCircle';
-import Controls from './components/Controls';
-import AyurvedicTips from './components/AyurvedicTips';
 import SmokeEffect from './components/SmokeEffect';
-import { motion } from 'framer-motion';
+import HomeView from './components/HomeView';
+import SessionView from './components/SessionView';
+import ProfileView from './components/ProfileView';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, Activity, Wind } from 'lucide-react';
 
 function App() {
+    const [currentView, setCurrentView] = useState('home');
+
+    const { streak, totalMinutes, logSession, resetData } = useStreaks();
+
     const {
         phase,
         timeLeft,
@@ -22,19 +26,10 @@ function App() {
         stop,
         toggleSound,
         changeLevel
-    } = useBreathingCycle();
-
-    const { streak, incrementStreak, lastLogDate } = useStreaks();
-
-    // Effect: Auto-log streak if user completes at least 1 full cycle
-    useEffect(() => {
-        if (cyclesCompleted > 0) {
-            incrementStreak();
-        }
-    }, [cyclesCompleted, incrementStreak]);
+    } = useBreathingCycle(logSession);
 
     return (
-        <div className="relative min-h-screen bg-[#050511] text-white overflow-hidden selection:bg-cyan-500/30 font-sans">
+        <div className="relative min-h-screen bg-gradient-to-b from-[#0A0A1A] to-[#05050A] text-white overflow-hidden selection:bg-cyan-500/30 font-sans">
 
             {/* Global Smoke Effect Layer */}
             <SmokeEffect />
@@ -68,15 +63,18 @@ function App() {
                     {/* Stats Container - Stack on very small screens, row on others */}
                     <div className="flex flex-row gap-3 items-center">
 
-                        {/* Streak Counter */}
-                        <div className="group relative flex items-center gap-2 bg-gradient-to-r from-orange-500/20 to-red-500/10 backdrop-blur-xl border border-orange-500/20 px-4 py-2 rounded-2xl shadow-lg transition-all hover:scale-105 hover:bg-orange-500/30">
+                        {/* Streak Counter (Clickable to Profile) */}
+                        <button 
+                            onClick={() => setCurrentView('profile')}
+                            className="group relative flex items-center gap-2 bg-gradient-to-r from-orange-500/20 to-red-500/10 backdrop-blur-xl border border-orange-500/20 px-4 py-2 rounded-2xl shadow-lg transition-all hover:scale-105 hover:bg-orange-500/30 hover:border-orange-500/40 cursor-pointer"
+                        >
                             <div className="absolute inset-0 bg-orange-500/20 blur-lg rounded-full opacity-0 group-hover:opacity-50 transition-opacity" />
                             <Flame size={16} className={`${streak > 0 ? 'fill-orange-500 text-orange-500 animate-pulse' : 'text-gray-400'}`} />
-                            <div className="flex flex-col leading-none">
+                            <div className="flex flex-col leading-none text-left">
                                 <span className="text-[10px] text-orange-200 uppercase tracking-wider font-bold opacity-60">Streak</span>
                                 <span className="text-sm font-bold font-mono text-orange-100">{streak} <span className="text-[10px] font-normal">days</span></span>
                             </div>
-                        </div>
+                        </button>
 
                         {/* Frequency/Hertz */}
                         <div className="group flex items-center gap-2 bg-gradient-to-r from-cyan-500/20 to-blue-500/10 backdrop-blur-xl border border-cyan-500/20 px-4 py-2 rounded-2xl shadow-lg transition-all hover:scale-105 hover:bg-cyan-500/30">
@@ -90,30 +88,45 @@ function App() {
                     </div>
                 </header>
 
-                {/* Content Area - Grow to fill space */}
-                <div className="flex-1 w-full flex flex-col items-center justify-center gap-8 min-h-[300px]">
-                    <BreathingCircle
-                        phase={phase}
-                        timeLeft={timeLeft}
-                        level={currentLevel}
-                    />
-
-                    <AyurvedicTips phase={phase} levelId={levelId} />
-                </div>
-
-                {/* Footer Controls */}
-                <div className="w-full flex flex-col items-center z-20 pb-4">
-                    <Controls
-                        isActive={isActive}
-                        isPaused={isPaused}
-                        onTogglePlay={togglePlay}
-                        onStop={stop}
-                        onToggleSound={toggleSound}
-                        soundEnabled={soundEnabled}
-                        currentLevelId={levelId}
-                        onChangeLevel={changeLevel}
-                    />
-                </div>
+                {/* Content Area - Conditional Rendering */}
+                <AnimatePresence mode="wait">
+                    {currentView === 'home' && (
+                        <HomeView 
+                            key="home"
+                            onSelectLevel={(id) => {
+                                changeLevel(id);
+                                setCurrentView('session');
+                            }} 
+                        />
+                    )}
+                    {currentView === 'session' && (
+                        <SessionView 
+                            key="session"
+                            onEndSession={() => setCurrentView('home')}
+                            phase={phase}
+                            timeLeft={timeLeft}
+                            isActive={isActive}
+                            isPaused={isPaused}
+                            levelId={levelId}
+                            currentLevel={currentLevel}
+                            soundEnabled={soundEnabled}
+                            togglePlay={togglePlay}
+                            stop={stop}
+                            toggleSound={toggleSound}
+                        />
+                    )}
+                    {currentView === 'profile' && (
+                        <ProfileView 
+                            key="profile"
+                            onBack={() => setCurrentView('home')}
+                            streak={streak}
+                            totalMinutes={totalMinutes}
+                            onResetData={resetData}
+                            soundEnabled={soundEnabled}
+                            onToggleSound={toggleSound}
+                        />
+                    )}
+                </AnimatePresence>
 
             </main>
         </div>

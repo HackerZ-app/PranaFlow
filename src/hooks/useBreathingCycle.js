@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { BREATHING_LEVELS } from '../constants/levels';
 import { audioEngine } from '../utils/audioEngine';
 
-export const useBreathingCycle = () => {
+export const useBreathingCycle = (onSessionEnd) => {
     const [levelId, setLevelId] = useState(1);
     const [isActive, setIsActive] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
@@ -12,6 +12,7 @@ export const useBreathingCycle = () => {
     const [cyclesCompleted, setCyclesCompleted] = useState(0);
 
     const timerRef = useRef(null);
+    const sessionSecondsRef = useRef(0);
 
     const currentLevel = BREATHING_LEVELS.find(l => l.id === levelId) || BREATHING_LEVELS[0];
 
@@ -37,13 +38,20 @@ export const useBreathingCycle = () => {
         setIsPaused(false);
         setPhase('idle');
         setTimeLeft(0);
-        setCyclesCompleted(0); // Reset cycles on stop
+        setCyclesCompleted(0);
         audioEngine.stop();
         if (timerRef.current) {
             clearInterval(timerRef.current);
             timerRef.current = null;
         }
-    }, []);
+        
+        // Log the session if there's accumulated time
+        if (sessionSecondsRef.current > 0 && onSessionEnd) {
+            const minutes = Math.max(1, Math.round(sessionSecondsRef.current / 60));
+            onSessionEnd(minutes);
+        }
+        sessionSecondsRef.current = 0;
+    }, [onSessionEnd]);
 
     const togglePlay = useCallback(() => {
         if (isActive) {
@@ -93,6 +101,8 @@ export const useBreathingCycle = () => {
         if (!isActive || isPaused) return;
 
         timerRef.current = setInterval(() => {
+            sessionSecondsRef.current += 1; // Track elapsed time
+
             setTimeLeft((prev) => {
                 if (prev <= 1) {
                     // Phase finished, switch to next

@@ -1,64 +1,87 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export const useStreaks = () => {
     const [streak, setStreak] = useState(0);
     const [lastLogDate, setLastLogDate] = useState(null);
+    const [totalMinutes, setTotalMinutes] = useState(0);
 
     useEffect(() => {
-        const storedStreak = parseInt(localStorage.getItem('pranaflow_streak') || '0');
+        const storedStreak = parseInt(localStorage.getItem('pranaflow_streak') || '0', 10);
         const storedDate = localStorage.getItem('pranaflow_last_log');
+        const storedMinutes = parseInt(localStorage.getItem('pranaflow_total_minutes') || '0', 10);
 
-        setStreak(storedStreak);
-        setLastLogDate(storedDate);
+        setTotalMinutes(storedMinutes);
 
-        // Check availability on load?
-        // If the user missed yesterday, technically the streak is 0 today unless they meditate.
-        // But usually we show the number they *will* lose if they don't meditate, or 0?
-        // Let's show the *current* active streak. 
-        // If last log was yesterday, streak is valid. 
-        // If last log was today, streak is valid.
-        // If last log was before yesterday, streak is effectively broken (0) for the *next* update, 
-        // but traditionally apps show 0 if broken.
-
-        const today = new Date().toDateString();
+        const today = new Date().toLocaleDateString();
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayString = yesterday.toDateString();
+        const yesterdayString = yesterday.toLocaleDateString();
 
         if (storedDate && storedDate !== today && storedDate !== yesterdayString) {
             // Streak broken
-            // We won't update LS yet, but visually we might want to know?
-            // Actually, simplest is: logic handled on "increment".
+            setStreak(0);
+            setLastLogDate(storedDate);
+            // Optionally, we could immediately save the broken streak to localStorage here
+            // localStorage.setItem('pranaflow_streak', '0');
+        } else {
+            // Valid streak (either logged today or yesterday)
+            setStreak(storedStreak);
+            setLastLogDate(storedDate);
         }
     }, []);
 
-    const incrementStreak = () => {
-        const today = new Date().toDateString();
+    const logSession = useCallback((minutesToAdd) => {
+        if (!minutesToAdd || minutesToAdd <= 0) return;
+
+        // 1. Always update Total Mindful Minutes (regardless of duration)
+        setTotalMinutes(prev => {
+            const newTotal = prev + minutesToAdd;
+            localStorage.setItem('pranaflow_total_minutes', newTotal.toString());
+            return newTotal;
+        });
+
+        // 2. Handle Streak Logic — only if session was >= 7 minutes
+        if (minutesToAdd < 7) return; // Below threshold: minutes logged, but streak untouched
+
+        const today = new Date().toLocaleDateString();
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayString = yesterday.toDateString();
+        const yesterdayString = yesterday.toLocaleDateString();
 
-        let newStreak = streak;
+        setStreak(prevStreak => {
+            let newStreak = prevStreak;
+            
+            setLastLogDate(prevDate => {
+                if (prevDate === today) {
+                    // Already logged today, streak remains the same
+                    return prevDate;
+                }
+                
+                // If last log was yesterday, increment. Otherwise, fresh start.
+                if (prevDate === yesterdayString) {
+                    newStreak = prevStreak + 1;
+                } else {
+                    newStreak = 1;
+                }
+                
+                localStorage.setItem('pranaflow_streak', newStreak.toString());
+                localStorage.setItem('pranaflow_last_log', today);
+                
+                return today;
+            });
 
-        if (lastLogDate === today) {
-            // Already logged today, do nothing
-            return;
-        }
+            return newStreak;
+        });
+    }, []);
 
-        if (lastLogDate === yesterdayString) {
-            // Continued streak
-            newStreak += 1;
-        } else {
-            // Broken streak or fresh start
-            newStreak = 1;
-        }
+    const resetData = useCallback(() => {
+        localStorage.removeItem('pranaflow_streak');
+        localStorage.removeItem('pranaflow_last_log');
+        localStorage.removeItem('pranaflow_total_minutes');
+        setStreak(0);
+        setLastLogDate(null);
+        setTotalMinutes(0);
+    }, []);
 
-        setStreak(newStreak);
-        setLastLogDate(today);
-
-        localStorage.setItem('pranaflow_streak', newStreak.toString());
-        localStorage.setItem('pranaflow_last_log', today);
-    };
-
-    return { streak, incrementStreak, lastLogDate };
+    return { streak, totalMinutes, logSession, resetData, lastLogDate };
 };

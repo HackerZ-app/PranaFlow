@@ -38,7 +38,7 @@ const AyurvedicTips = ({ phase, levelId }) => {
     }
 
     return (
-        <div className="h-20 w-full max-w-lg flex items-center justify-center px-4 mt-8">
+        <div className="w-full flex items-center justify-center px-4">
             <AnimatePresence mode="wait">
                 <motion.p
                     key={displayTip}
@@ -46,7 +46,7 @@ const AyurvedicTips = ({ phase, levelId }) => {
                     animate={{ opacity: 0.7, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.5 }}
-                    className="text-center text-sm md:text-base text-cyan-100/60 font-medium italic"
+                    className="text-center text-sm md:text-base text-gray-300 font-medium italic tracking-wide max-w-xs leading-relaxed"
                 >
                     "{displayTip}"
                 </motion.p>
